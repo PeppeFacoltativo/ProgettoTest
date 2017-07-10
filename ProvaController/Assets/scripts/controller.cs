@@ -7,6 +7,7 @@ public class controller : MonoBehaviour {
 
 	void Start () {
         Cursor.visible = false;
+		Cursor.lockState = CursorLockMode.Locked;
     }
 
     [SerializeField]
