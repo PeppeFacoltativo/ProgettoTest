@@ -8,6 +8,8 @@ public class controller : MonoBehaviour {
 	void Start () {
         Cursor.visible = false;
 		Cursor.lockState = CursorLockMode.Locked;
+        //Player
+        rb = GetComponent<Rigidbody>();
     }
 
     [SerializeField]
@@ -20,38 +22,44 @@ public class controller : MonoBehaviour {
     float trampForce = 80f;
 
     [SerializeField]
-    float dash = 0.5F;
+    float dash = 5F;
+
+    [SerializeField]
+    float dashCooldown = 1.5f;
 
     float dashmultiplier = 1.5f;
     bool grounded = true;
     bool dashing = false;
     float dashTime = 0;
     float startTime = 0;
+    float timeStamp = 0;
+
+    Rigidbody rb;
 
     // Update is called once per frame
     void FixedUpdate () {
-        
-        //Player
-        Rigidbody rb = GetComponent<Rigidbody>();
 
         //Get Horizontal Rotation from mouse
         float Hrot = 0;
-        Hrot = Input.GetAxisRaw("Mouse X");
+        Hrot = Input.GetAxisRaw("Mouse X")/2;
 
-        if (Input.GetKeyDown(KeyCode.Mouse0))
+        if (timeStamp <= Time.time)
         {
-            startTime = Time.time;
-        }
-        if (Input.GetKeyUp(KeyCode.Mouse0))
-        {
-            dashTime = Time.time - startTime;
-            //Maximum dashTime = 3 sec
-            if (dashTime > 3)
+            if (Input.GetKeyDown(KeyCode.Mouse0))
             {
-                dashTime = 3;
+                startTime = Time.time;
             }
-
-            dashing = true;
+            if (Input.GetKeyUp(KeyCode.Mouse0))
+            {
+                dashTime = (Time.time - startTime)/4;
+                timeStamp = Time.time + dashCooldown + dashTime;
+                //Maximum dashTime = 0.5 sec
+                if (dashTime > 0.5)
+                {
+                    dashTime = 0.5f;
+                }
+                dashing = true;
+            }
         }
 
         if (dashing)
@@ -90,6 +98,8 @@ public class controller : MonoBehaviour {
             Vmov = (speed + dash) * dashmultiplier;
             Hmov = Input.GetAxis("Horizontal") * speed;
             transform.Translate(Hmov, 0, Vmov);
+            /*if (Vmov != 0)
+            { rb.AddForce(new Vector3(Hmov, 0, Vmov), ForceMode.Impulse); }*/
             dashTime = dashTime-Time.deltaTime;
         }
         else
