@@ -12,20 +12,25 @@ public class controller : MonoBehaviour {
         rb = GetComponent<Rigidbody>();
     }
 
-    [SerializeField]
-    float speed = 0.1F;
+    public Transform camera;
 
     [SerializeField]
-    float jumpForce = 15f;
+    float speed;
 
     [SerializeField]
-    float trampForce = 80f;
+    float jumpForce;
 
     [SerializeField]
-    float dash = 5F;
+    float trampForce;
 
     [SerializeField]
-    float dashCooldown = 1.5f;
+    float dash;
+
+    [SerializeField]
+    float rotationSpeed;
+
+    [SerializeField]
+    float dashCooldown;
 
     float dashmultiplier = 1.5f;
     bool grounded = true;
@@ -38,10 +43,6 @@ public class controller : MonoBehaviour {
 
     // Update is called once per frame
     void FixedUpdate () {
-
-        //Get Horizontal Rotation from mouse
-        float Hrot = 0;
-        Hrot = Input.GetAxisRaw("Mouse X")/2;
 
         if (timeStamp <= Time.time)
         {
@@ -64,11 +65,12 @@ public class controller : MonoBehaviour {
 
         if (dashing)
         {
-            dashMove();
+
+             dashMove();
         }
         else
         {
-            Move();
+             Move();
         }
 
         //Jump
@@ -76,34 +78,51 @@ public class controller : MonoBehaviour {
         {
             rb.AddForce(new Vector3(0, jumpForce, 0), ForceMode.Impulse);
         }
-        transform.Rotate(new Vector3(0, Hrot, 0));
 
     }
 
     public void Move()
     {
-        float Vmov = 0;
-        float Hmov = 0;
-        Vmov = Input.GetAxis("Vertical") * speed * dashmultiplier;
-        Hmov = Input.GetAxis("Horizontal") * speed;
-        transform.Translate(Hmov, 0, Vmov);
-    }
+        Vector3 moveDirection = Vector3.zero;
+        if (Input.GetKey(KeyCode.W)) moveDirection += camera.forward;
+        if (Input.GetKey(KeyCode.S)) moveDirection += -camera.forward;
+        if (Input.GetKey(KeyCode.A)) moveDirection += -camera.right;
+        if (Input.GetKey(KeyCode.D)) moveDirection += camera.right;
+
+        moveDirection.y = 0f;
+
+        rb.AddForce(moveDirection*speed);
+
+        if (moveDirection != Vector3.zero)
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(moveDirection), rotationSpeed * Time.deltaTime);
+}
+
+    Vector3 dashVector = Vector3.zero;
 
     public void dashMove()
     {
         if (dashTime>0)
         {
-            float Vmov = 0;
-            float Hmov = 0;
-            Vmov = (speed + dash) * dashmultiplier;
-            Hmov = Input.GetAxis("Horizontal") * speed;
-            transform.Translate(Hmov, 0, Vmov);
-            /*if (Vmov != 0)
-            { rb.AddForce(new Vector3(Hmov, 0, Vmov), ForceMode.Impulse); }*/
+            Vector3 moveDirection = Vector3.zero;
+            
+            if (Input.GetKey(KeyCode.W)) moveDirection = camera.forward;
+            if (Input.GetKey(KeyCode.S)) moveDirection = -camera.forward;
+            if (Input.GetKey(KeyCode.A)) moveDirection = -camera.right;
+            if (Input.GetKey(KeyCode.D)) moveDirection = camera.right;
+
+            moveDirection.y = 0f;
+            dashVector = new Vector3(moveDirection.x*dash,0, moveDirection.z * dash);
+
+            rb.AddForce(dashVector);
+
+            if (moveDirection != Vector3.zero)
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(moveDirection), rotationSpeed * Time.deltaTime);
+
             dashTime = dashTime-Time.deltaTime;
         }
         else
         {
+            rb.AddForce(-dashVector);
             startTime = 0;
             dashTime = 0;
             dashing = false;
