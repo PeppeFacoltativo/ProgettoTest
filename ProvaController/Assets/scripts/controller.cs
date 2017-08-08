@@ -33,7 +33,7 @@ public class controller : MonoBehaviour {
     float dashCooldown;
 
     float dashmultiplier = 1.5f;
-    bool grounded = true;
+    public bool grounded = true;
     bool dashing = false;
     float dashTime = 0;
     float startTime = 0;
@@ -92,7 +92,6 @@ public class controller : MonoBehaviour {
         moveDirection.y = 0f;
 
         rb.AddForce(moveDirection*speed);
-
         if (moveDirection != Vector3.zero)
             transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(moveDirection), rotationSpeed * Time.deltaTime);
 }
@@ -113,7 +112,8 @@ public class controller : MonoBehaviour {
             moveDirection.y = 0f;
             dashVector = new Vector3(moveDirection.x*dash,0, moveDirection.z * dash);
 
-            rb.AddForce(dashVector);
+            rb.AddForce(dashVector, ForceMode.VelocityChange);
+
 
             if (moveDirection != Vector3.zero)
                 transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(moveDirection), rotationSpeed * Time.deltaTime);
@@ -122,7 +122,7 @@ public class controller : MonoBehaviour {
         }
         else
         {
-            rb.AddForce(-dashVector);
+			rb.AddForce(-dashVector,ForceMode.VelocityChange);
             startTime = 0;
             dashTime = 0;
             dashing = false;
@@ -159,7 +159,7 @@ public class controller : MonoBehaviour {
 
         if (box.tag == "tramp")
         {
-            jumpForce = 15;
+            jumpForce = 3;
         }
 
         if (box.tag == "ground")
