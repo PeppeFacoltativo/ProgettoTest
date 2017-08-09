@@ -4,17 +4,34 @@ using UnityEngine;
 
 public class camera : MonoBehaviour {
 
-    public Transform player;       //Public variable to store a reference to the player game object
-    private Vector3 offset;         //Private variable to store the offset distance between the player and camera
 
-    [SerializeField]
-    int maxRotation = 20;
+    public Transform player;       //Public variable to store a reference to the player game object
+    private Vector3 offset;
+
+
+    [Space]
+    [Header("Position")]
+    public float camPosX;
+    public float camPosY;
+    public float camPosZ;
+
+    [Space]
+    [Header("Rotation")]
+    public float camRotationX;
+    public float camRotationY;
+    public float camRotationZ;
+
+    [Space]
+    [Range(0f, 10f)]
+    public float turnSpeed;
 
     // Use this for initialization
     void Start()
     {
         //Calculate and store the offset value by getting the distance between the player's position and camera's position.
-        offset = new Vector3(player.position.x, player.position.y + 2.0f, player.position.z + 9.0f);
+        offset = new Vector3(player.position.x + camPosX, player.position.y + camPosY, player.position.z + camPosZ);
+        transform.rotation = Quaternion.Euler(camRotationX, camRotationY, camRotationZ);
+        transform.LookAt(player.position);
     }
 
 
@@ -22,28 +39,41 @@ public class camera : MonoBehaviour {
     void LateUpdate()
     {
 
-        float movement = Input.GetAxis("Horizontal") * Time.deltaTime;
-        if (!Mathf.Approximately(movement, 0f))
+        if (transform.position.y <= 0.5f)    //if the camera is too close of the ground, put it back to 0.5 on top of it
         {
-            transform.RotateAround(player.position, Vector3.up, movement);
-            offset = transform.position - player.position;
-        }
+            camPosX = transform.position.x;    // keep the X and Z position
+			camPosZ = transform.position.z - player.position.z;
+			transform.position = new Vector3(player.position.x + camPosX, camPosY, player.position.z + camPosZ);
 
-        float Vrot = Input.GetAxisRaw("Mouse Y") * -1;
-        transform.Rotate(new Vector3(Vrot, 0, 0));
-
-        if (transform.localEulerAngles.x > maxRotation && transform.localEulerAngles.x < 180)
-        {
-            transform.localEulerAngles = new Vector3(20, 0, 0);
-        }
-        else
-        {
-            if (transform.localEulerAngles.x < 360-maxRotation && transform.localEulerAngles.x > 180)
+            if (transform.rotation.x < 0f)
             {
-                transform.localEulerAngles = new Vector3(-20, 0, 0);
+                transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, transform.rotation.eulerAngles.z);
             }
         }
+        else if (transform.position.y >= 8f) //if it is too far from the ground, put it back to 8 unit on top of it
+        {
+            camPosX = transform.position.x;    //we keep the X and Z position
+            camPosZ = transform.position.z;
+            transform.position = new Vector3(player.position.x + camPosX, 8f, player.position.z + camPosZ);
+        } 
+
+		offset = Quaternion.AngleAxis(Input.GetAxis("Mouse X") * turnSpeed, Vector3.up) * Quaternion.AngleAxis(Input.GetAxis("Mouse Y") * turnSpeed, Vector3.right) * offset;
+		transform.position = player.position + offset;
+		
+		transform.LookAt(player.position);
+        
     }
+
+
+	//@PEPPEFACOLTATIVO SIMO PROVA A FAR COLLIDERE LA TELECAMERA CON IL TERRENO IN MODO CHE LEI NON POSSA ANDARE PIù GIù DI ESSO E AFFONDARCISI
+	/*void OnTriggerEnter(Collider box){
+		Debug.Log (box.tag);
+		if (box.tag=="ground")
+		{
+
+		}
+
+	}*/
 }
 
 
